@@ -1,0 +1,10 @@
+﻿  main.cpp
+C:\Users\Andrew\source\repos\FinalsProject\FinalsProject\main.cpp(873,28): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\Andrew\source\repos\FinalsProject\FinalsProject\main.cpp(874,35): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\Andrew\source\repos\FinalsProject\FinalsProject\main.cpp(1238,36): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\Andrew\source\repos\FinalsProject\FinalsProject\main.cpp(1250,28): warning C4477: 'printf' : format string '%f' requires an argument of type 'double', but variadic argument 1 has type 'int'
+C:\Users\Andrew\source\repos\FinalsProject\FinalsProject\main.cpp(1251,28): warning C4477: 'printf' : format string '%f' requires an argument of type 'double', but variadic argument 1 has type 'const int'
+C:\Users\Andrew\source\repos\FinalsProject\FinalsProject\main.cpp(1252,28): warning C4477: 'printf' : format string '%f' requires an argument of type 'double', but variadic argument 1 has type 'int'
+C:\Users\Andrew\source\repos\FinalsProject\FinalsProject\main.cpp(1269,32): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\Andrew\source\repos\FinalsProject\FinalsProject\main.cpp(1733,45): warning C4305: 'argument': truncation from 'double' to 'GLclampf'
+  FinalsProject.vcxproj -> C:\Users\Andrew\source\repos\FinalsProject\Debug\FinalsProject.exe
