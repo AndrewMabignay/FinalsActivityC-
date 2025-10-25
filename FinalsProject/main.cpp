@@ -689,7 +689,7 @@ float creditsX = 0.0f;
 
 // UPDATE CREDITS POSITION
 void updateCreditsPosition() {
-    creditsX += 0.1f; // 0.007 Adjust speed as needed
+    creditsX += 0.009f; // 0.007 Adjust speed as needed
     if (creditsX > 20.0f) creditsX = 0.0f; // Loop back if needed
 }
 
@@ -795,6 +795,15 @@ void overlayPausePlay()
 // --------------------------------------  PROGRAM: GAME OVER  --------------------------------------
 void gameOverOverlay()
 {
+    glColor3f(1.0f, 1.0f, 0.0f); // Yellow text
+
+    if (typingName && !showLeaderboard) {
+        typingUiObject();
+    }
+    else {
+        showLeaderboardsObject();
+    }
+
     // BLACK OVERLAY
     glBegin(GL_QUADS);
     glColor4f(0.0f, 0.0f, 0.0f, 0.5f); // OVERLAY
@@ -816,14 +825,17 @@ void gameOverOverlay()
     drawButton(startX, btnY, btnWidth, btnHeight, "HOME [H]");
     drawButton(startX + (btnWidth + spacing), btnY, btnWidth, btnHeight, "RETRY [R]");
 
-    glColor3f(1.0f, 1.0f, 0.0f); // Yellow text
     
-    if (typingName) {
+
+    // showLeaderboardsObject();
+
+
+    /*if (typingName) {
         typingUiObject();
     }
     else if (showLeaderboard) {
         showLeaderboardsObject();
-    }
+    }*/
 }
 
 GLuint backgroundTexture = 0;
@@ -856,11 +868,12 @@ void objectProgram()
     backgroundProgram();
 
     if (!isStart) {
-        updateCreditsPosition();
-        introductionOverlay();
-
         if (showLeaderboard) {
             showLeaderboardsObject();
+        }
+        else {
+            updateCreditsPosition();
+            introductionOverlay();
         }
     }
 
@@ -1021,18 +1034,27 @@ void keyboard(unsigned char key, int x, int y)
 
     // --------------- RESTART IF GAMEOVER ---------------
     if (isGameOver) {
+        if (key == 13) {
+            typingName = true;
+            return;
+        }
+
         if (typingName) {
             if (key == 13) { // ENTER
                 typingName = false;
                 showLeaderboard = true;
-                isPaused = false;
-                isStart = false;
+                /*isPaused = false;
+                isStart = false;*/
 
                 playerScore = score;
                 saveScoreToFile(scoreFilePath);
                 std::cout << "Name saved to: " << scoreFilePath << std::endl;
                 std::cout << "Final countdown saved: " << highestRemainingCountdownTime << std::endl;
-                
+             
+                if (key == 'r' || key == 'R') {
+                    showLeaderboard = false;
+                    resetGame();
+                }
             }
             else if (key == 8 && !playerName.empty()) {
                 playerName.pop_back();
@@ -1042,6 +1064,24 @@ void keyboard(unsigned char key, int x, int y)
             }
             return;
         }
+
+        //// ✅ Now handle R and H after name is entered
+        //if (showLeaderboard) {
+        //    switch (key) {
+        //    case 'R':
+        //    case 'r':
+        //        showLeaderboard = false;
+        //        resetGame();
+        //        break;
+        //    case 'H':
+        //    case 'h':
+        //        showLeaderboard = false;
+        //        resetGame();
+        //        isStart = false;
+        //        break;
+        //    }
+        //    return; // ✅ Prevent falling through to other logic
+        //}
 
         switch (key)
         {
@@ -1329,7 +1369,7 @@ void proceedToNextStage()
 // --------------------------------------  UPDATE LOGIC: GAME OVER  --------------------------------------
 void isGameOverLogicFunction()
 {
-    typingName = true;
+    // typingName = true;
 
     printf("Game Over: %s\n", isGameOver ? "true" : "false");
     printf("Typing Name: %s\n", typingName ? "true" : "false");
