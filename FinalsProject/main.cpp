@@ -685,9 +685,44 @@ void drawButton(float left, float bottom, float width, float height, const char*
 }
 
 // --------------------------------------  PROGRAM: INTRODUCTION  --------------------------------------
+float creditsX = 0.0f;
+
+// UPDATE CREDITS POSITION
+void updateCreditsPosition() {
+    creditsX += 0.1f; // 0.007 Adjust speed as needed
+    if (creditsX > 20.0f) creditsX = 0.0f; // Loop back if needed
+}
+
+// RENDER CREDITS
+void renderCredits() {
+    glColor3f(1.0f, 0.0f, 0.0f); // Red text
+
+    //// Example credit lines
+    //std::vector<std::string> credits = {
+    //    "@Credits", "Andrew Mabignay", "Keith Aldrich Cruz", "Edraine Cruz"
+    //};
+
+    //float yStart = 3.5f;
+    //for (size_t i = 0; i < credits.size(); ++i) {
+    //    renderBitmapString(creditsX, yStart - i * 0.5f, credits[i].c_str());
+    //}
+
+    // Combine all names into one line
+    std::string creditLine = "@Credits: Andrew Mabignay | Keith Aldrich Cruz | Edraine Cruz";
+
+    // Fixed Y position, moving X position
+    float yPos = 2.0f; // adjust as needed
+    glRasterPos2f(creditsX, yPos);
+
+    for (char c : creditLine)
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, c);
+}
+
+
 float introLeft = 0.0f, introRight = 20.0f, introBottom = 0.0f, introTop = 20.0f; // INTRODUCTION BACKGROUND
 float introLogoLeft = 6.5f, introLogoRight = 14.5f, introLogoBottom = 8.0f, introLogoTop = 14.0f; // INTRODUCTION LOGO
 
+// INTRODUCTION OVERLAY
 void introductionOverlay()
 {
     blackOverlay(); // OVERLAY
@@ -717,6 +752,15 @@ void introductionOverlay()
     // CLICK [TAB] TO START
     glColor3f(1.0f, 0.0f, 0.0f); // RED
     renderBitmapString(12.0f, 5.0f, "Start [Tab]");
+
+    // CREDITS
+    //glColor3f(1.0f, 0.0f, 0.0f); // RED
+    //renderBitmapString(13.0f, 3.5f, "@Credits");
+    //renderBitmapString(13.0f, 3.0f, "Andrew Mabignay");
+    //renderBitmapString(13.0f, 2.5f, "Keith Aldrich Cruz");
+    //renderBitmapString(13.0f, 2.0f, "Edraine Cruz");
+    renderCredits();
+
 }
 
 // --------------------------------------  SETTINGS: PAUSE & PLAY  -------------------------------------- 
@@ -746,7 +790,6 @@ void overlayPausePlay()
     drawButton(startX, btnY, btnWidth, btnHeight, "HOME [H]");
     drawButton(startX + (btnWidth + spacing), btnY, btnWidth, btnHeight, "RESTART [R]");
     drawButton(startX + 2 * (btnWidth + spacing), btnY, btnWidth, btnHeight, "RESUME [ESC]");
-
 }
 
 // --------------------------------------  PROGRAM: GAME OVER  --------------------------------------
@@ -813,6 +856,7 @@ void objectProgram()
     backgroundProgram();
 
     if (!isStart) {
+        updateCreditsPosition();
         introductionOverlay();
 
         if (showLeaderboard) {
@@ -1602,9 +1646,8 @@ void update(int value)
             }
         }
 
-        if (remainingTime > highestRemainingCountdownTime) {
-            highestRemainingCountdownTime = remainingTime;
-        }
+        updateCreditsPosition();
+        renderCredits();
 
 
         // ============================ ADDITIONAL (END) | UPDATE IMPLEMENTATION THEORY MODIFICATION ============================
@@ -1705,6 +1748,12 @@ void display()
 
 GLuint platformTexture;
 // ============================ MAIN FUNCTION ============================ 
+void timer(int value) {
+    glutPostRedisplay();           // REDRAW
+    glutTimerFunc(16, timer, 0);   // ~60 FPS
+}
+
+
 
 int main(int arg, char** argv)
 {
@@ -1724,6 +1773,9 @@ int main(int arg, char** argv)
     // APPLICATION TITLE
     glutCreateWindow("Application namin ni papi mosh");
     glutDisplayFunc(display);
+    // Enable continuous rendering for animation
+    // glutIdleFunc(idle);  // ← THIS LINE
+    glutTimerFunc(0, timer, 0);
     glutTimerFunc(16, update, 0);
     glutSpecialFunc(specialKeys);
     glutSpecialUpFunc(specialKeysUp);
