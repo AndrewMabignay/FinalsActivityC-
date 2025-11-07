@@ -4,7 +4,6 @@
 #include <stdlib.h> 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
-
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -12,7 +11,8 @@
 #include <vector>
 #include <algorithm>
 #include <tuple>
-
+#include <cstdlib>
+#include <ctime>
 
 // SETTINGS (WINDOWS)
 int windowWidth = 550, windowHeight = 700;
@@ -32,7 +32,7 @@ bool moveLeft = false, moveRight = false;
 
 // USER JUMP 
 bool isOnGround = true;
-float gravity = 1.0f, velocityY = 0.0f, jumpStrength = 1.20f;
+float gravity = 1.0f, velocityY = 0.0f, jumpStrength = 1.15f;
 
 // GROUND
 
@@ -50,7 +50,7 @@ int platformDirection[platformCount] = { 1, -1, 1 };
 
 // LIVES, SCORING, STAGE & GAME OVER PROGRAM
 int lives = 3; // STARTING LIVES
-bool isGameOver = false;
+bool isGameOver = true;
 int lastHitTime = 0;
 const int hitDelay = 1000; // delay in ms (1 second)
 int score = 0;
@@ -89,10 +89,8 @@ bool countdownActive = false;
 
 int countdownTimeForPortalKeyShesh = 15;
 int startTimeForPortalKeyShesh = 0;
-int remainingTimeForPortalKeyShesh = 15;
+int remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh;
 bool countdownActiveForPortal = false;
-
-// ============================ ADDITIONAL (END) | VARIABLE THEORY MODIFICATION ============================
 
 // ============================ FINALS ACTIVITY (START) | VARIABLE ============================ 
 // --------- GAME STATE --------- 
@@ -146,43 +144,7 @@ void saveScoreToFile(const char* filename) {
     std::cout << "Saved (sorted): " << playerName << " " << playerScore << std::endl;
 }
 
-//void saveScoreToFile(const char* filename) {
-//    std::vector<std::tuple<std::string, int, int>> scores;
-//    std::ifstream inFile(filename);
-//    if (inFile.is_open()) {
-//        std::string name;
-//        int score, countdown;
-//        while (inFile >> name >> score >> countdown)
-//            scores.push_back(std::make_tuple(name, score, countdown));
-//        inFile.close();
-//    }
-//
-//    scores.push_back(std::make_tuple(playerName, playerScore, highestRemainingCountdownTime));
-//
-//    std::sort(scores.begin(), scores.end(), [](const auto& a, const auto& b) {
-//        if (std::get<1>(a) != std::get<1>(b))
-//            return std::get<1>(a) > std::get<1>(b);
-//        else
-//            return std::get<2>(a) > std::get<2>(b);
-//        });
-//
-//    std::ofstream outFile(filename);
-//    if (!outFile.is_open()) {
-//        std::cout << "Failed to open file for saving.\n";
-//        return;
-//    }
-//
-//    for (auto& entry : scores)
-//        outFile << std::get<0>(entry) << " " << std::get<1>(entry) << " " << std::get<2>(entry) << std::endl;
-//
-//    outFile.close();
-//    std::cout << "Saved (sorted): " << playerName << " " << playerScore << " " << highestRemainingCountdownTime << std::endl;
-//}
-
-
-
-
- // --------- LOAD ALL SCORES ---------
+// --------- LOAD ALL SCORES ---------
 std::vector<std::pair<std::string, int>> loadAllScore(const char* filename) {
     std::vector<std::pair<std::string, int>> scores;
     std::ifstream file(filename);
@@ -197,21 +159,6 @@ std::vector<std::pair<std::string, int>> loadAllScore(const char* filename) {
 
     return scores;
 }
-
-//std::vector<std::tuple<std::string, int, int>> loadAllScore(const char* filename) {
-//    std::vector<std::tuple<std::string, int, int>> scores;
-//    std::ifstream file(filename);
-//    if (!file.is_open()) return scores;
-//
-//    std::string name;
-//    int score, countdown;
-//    while (file >> name >> score >> countdown)
-//        scores.push_back(std::make_tuple(name, score, countdown));
-//
-//    file.close();
-//    return scores;
-//}
-
 
 // ============================ FINALS ACTIVITY (END) | SAVE & LOAD ALL SCORE FUNCTION ============================ 
 
@@ -247,27 +194,6 @@ void showLeaderboardsObject() {
         for (char c : line) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
         count++;
     }
-    /*topScores = loadAllScore(scoreFilePath);
-
-    glColor3f(1.0f, 1.0f, 0.0f);
-    float yPos = 12.5f;
-    glRasterPos2f(7.5f, yPos);
-    std::string header = "TOP 5 SCORES:";
-    for (char c : header) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
-
-    int count = 0;
-    for (auto& s : topScores) {
-        if (count >= 5) break;
-        yPos -= 0.90f;
-        glRasterPos2f(7.5f, yPos);
-        std::string line = std::to_string(count + 1) + ". " +
-            std::get<0>(s) + " - " + std::to_string(std::get<1>(s)) +
-            " (" + std::to_string(std::get<2>(s)) + "s left)";
-
-        for (char c : line) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
-        count++;
-    }*/
-
 }
 
 // -------- TYPING UI FUNCTION --------
@@ -311,7 +237,7 @@ void renderBitmapString(float x, float y, const char* string)
     const char* c;
     glRasterPos2f(x, y);
     for (c = string; *c != '\0'; c++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *c);
     }
 }
 
@@ -697,16 +623,6 @@ void updateCreditsPosition() {
 void renderCredits() {
     glColor3f(1.0f, 0.0f, 0.0f); // Red text
 
-    //// Example credit lines
-    //std::vector<std::string> credits = {
-    //    "@Credits", "Andrew Mabignay", "Keith Aldrich Cruz", "Edraine Cruz"
-    //};
-
-    //float yStart = 3.5f;
-    //for (size_t i = 0; i < credits.size(); ++i) {
-    //    renderBitmapString(creditsX, yStart - i * 0.5f, credits[i].c_str());
-    //}
-
     // Combine all names into one line
     std::string creditLine = "@Credits: Andrew Mabignay | Keith Aldrich Cruz | Edraine Cruz";
 
@@ -754,13 +670,7 @@ void introductionOverlay()
     renderBitmapString(12.0f, 5.0f, "Start [Tab]");
 
     // CREDITS
-    //glColor3f(1.0f, 0.0f, 0.0f); // RED
-    //renderBitmapString(13.0f, 3.5f, "@Credits");
-    //renderBitmapString(13.0f, 3.0f, "Andrew Mabignay");
-    //renderBitmapString(13.0f, 2.5f, "Keith Aldrich Cruz");
-    //renderBitmapString(13.0f, 2.0f, "Edraine Cruz");
     renderCredits();
-
 }
 
 // --------------------------------------  SETTINGS: PAUSE & PLAY  -------------------------------------- 
@@ -822,20 +732,20 @@ void gameOverOverlay()
     float btnY = 5.0f; // vertical position (bottom)
 
     // DRAW 3 BUTTONS SIDE BY SIDE
-    drawButton(startX, btnY, btnWidth, btnHeight, "HOME [H]");
-    drawButton(startX + (btnWidth + spacing), btnY, btnWidth, btnHeight, "RETRY [R]");
-
+    glColor3f(1.0f, 0.0f, 0.0f); // RED
     
 
-    // showLeaderboardsObject();
-
-
-    /*if (typingName) {
-        typingUiObject();
+    if (typingName) {
+        renderBitmapString(5.5f, 5.0f, "Back [Esc]");
+        renderBitmapString(10.5f, 5.0f, "Submit [Enter]");
     }
-    else if (showLeaderboard) {
-        showLeaderboardsObject();
-    }*/
+    else {
+        renderBitmapString(3.5f, 5.0f, "Home [H]");
+        renderBitmapString(7.5f, 5.0f, "Retry [R]");
+        renderBitmapString(11.5f, 5.0f, "Type Name [Enter]");
+    }
+    /*drawButton(startX, btnY, btnWidth, btnHeight, "HOME [H]");
+    drawButton(startX + (btnWidth + spacing), btnY, btnWidth, btnHeight, "RETRY [R]");*/
 }
 
 GLuint backgroundTexture = 0;
@@ -862,6 +772,29 @@ void backgroundProgram()
 
 // ============================ OBJECT PROGRAM (FINAL) ============================
 
+// ============================ ADDITIONAL (START) | OBJECT THEORY MODIFICATION ============================ 
+
+// ---------------- #1 WIND ----------------
+bool isWindActivate = false;
+int lastToggleWindTime = false;
+int toggleWindDelay = 5000;
+int windDirection = 1; // 1 = right, -1 = left
+
+void wind()
+{
+    if (isWindActivate)
+    {
+        glBegin(GL_QUADS);
+        glColor4f(0.0f, 0.0f, 0.0f, 0.3f); // OVERLAY
+        glVertex2f(0.0f, 0.0f);
+        glVertex2f(20.0f, 0.0f);
+        glVertex2f(20.0f, 20.0f);
+        glVertex2f(0.0f, 20.0f);
+        glEnd();
+    }
+}
+
+// ============================ ADDITIONAL (END) | OBJECT THEORY MODIFICATION ============================ 
 
 void objectProgram()
 {
@@ -897,22 +830,24 @@ void objectProgram()
         //closePlatform();
 
         // ACTIVITY# 1 | WALL MIDDLE UP & KEY
-        if (!isWallUpRightOpen) key();
-
-        wallMiddleUp();
-        wallLeftUp();
-
+        /// if (!isWallUpRightOpen && !countdownActiveForPortal) {
         if (!isWallUpRightOpen) {
-            wallRightUp();
-        }
-
-        if (countdownActiveForPortal == false) {
             key();
             wallRightUp();
         }
 
-        if (isStart && (stage == 2)) {
+        wallMiddleUp();
+        wallLeftUp();
 
+
+        /*if (countdownActiveForPortal == false) {
+            key();
+            wallRightUp();
+        }*/
+
+        //
+        if (stage == 2) {
+            wind();
         }
 
         if (isPaused) {
@@ -949,6 +884,7 @@ void resetGame()
     // RESET STATS
     lives = 3;
     score = 0;
+    stage = 1;
 
     // RESET PLATFORMS (BACK TO THE ORIGINAL POSITIONS)
     float defaultPlatformX[platformCount] = { 6.0f, 11.0f, 16.0f };
@@ -975,26 +911,8 @@ void resetGame()
     startTimeForPortalKeyShesh = glutGet(GLUT_ELAPSED_TIME);
     remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh;
     countdownActiveForPortal = true;
-}
 
-// ============================ MOUSE FUNCTION ============================
-void mouse(int button, int state, int x, int y)
-{
-    if (isGameOver && button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-        // Convert mouse (screen coords) -> game coords (ortho 0–20)
-        int windowHeight = glutGet(GLUT_WINDOW_HEIGHT);
-        float mouseX = (float)x / windowWidth * 20.0f;
-        float mouseY = (float)(windowHeight - y) / windowHeight * 20.0f;
-
-        // Button bounds (same as sa overlay)
-        float btnLeft = 8.0f, btnRight = 12.0f, btnBottom = 9.0f, btnTop = 11.0f;
-
-        if (mouseX >= btnLeft && mouseX <= btnRight &&
-            mouseY >= btnBottom && mouseY <= btnTop)
-        {
-            resetGame(); // restart game agad
-        }
-    }
+    isWallUpRightOpen = false;
 }
 
 // ============================ KEYBOARD FUNCTION ============================
@@ -1033,69 +951,95 @@ void keyboard(unsigned char key, int x, int y)
     }
 
     // --------------- RESTART IF GAMEOVER ---------------
+    //if (isGameOver) {
+    //    if (key == 13) {
+    //        typingName = true;
+    //        return;
+    //    }
+
+    //    if (typingName) {
+    //        if (key == 13) { // ENTER
+    //            typingName = false;
+    //            showLeaderboard = true;
+    //            playerScore = score;
+    //            saveScoreToFile(scoreFilePath);
+    //            std::cout << "Name saved to: " << scoreFilePath << std::endl;
+    //            std::cout << "Final countdown saved: " << highestRemainingCountdownTime << std::endl;
+    //         
+    //            if (key == 'r' || key == 'R') {
+    //                showLeaderboard = false;
+    //                resetGame();
+    //            }
+    //        }
+    //        else if (key == 8 && !playerName.empty()) {
+    //            playerName.pop_back();
+    //        }
+    //        else if (isalpha(key)) {
+    //            playerName += key;
+    //        }
+    //        return;
+    //    }
+
+    //    switch (key)
+    //    {
+    //    case 'R':
+    //    case 'r':
+    //        resetGame();
+    //        break;
+    //    case 'H':
+    //    case 'h':
+    //        resetGame();
+    //        isStart = false;
+    //        break;
+    //    }
+    //}
     if (isGameOver) {
+        if (typingName) {
+            if (key == 13) { // ENTER
+                typingName = false;
+                showLeaderboard = true;
+                playerScore = score;
+                saveScoreToFile(scoreFilePath);
+                std::cout << "Name saved to: " << scoreFilePath << std::endl;
+                std::cout << "Final countdown saved: " << highestRemainingCountdownTime << std::endl;
+            }
+            else if (key == 27 && typingName) { // ESC (GO BACK)
+                typingName = false;
+            }
+            else {
+                // Handle character input for name
+                if (key == 8 && !playerName.empty()) { // BACKSPACE
+                    playerName.pop_back();
+                }
+                else if (key >= 32 && key <= 126) { // Printable characters
+                    playerName += key;
+                }
+            }
+            return;
+        }
+        else {
+            switch (key)
+            {
+                case 'R':
+                case 'r':
+                    resetGame();
+                    break;
+                case 'H':
+                case 'h':
+                    resetGame();
+                    isStart = false;
+                    break;
+            }
+        }
+
         if (key == 13) {
             typingName = true;
             return;
         }
 
-        if (typingName) {
-            if (key == 13) { // ENTER
-                typingName = false;
-                showLeaderboard = true;
-                /*isPaused = false;
-                isStart = false;*/
-
-                playerScore = score;
-                saveScoreToFile(scoreFilePath);
-                std::cout << "Name saved to: " << scoreFilePath << std::endl;
-                std::cout << "Final countdown saved: " << highestRemainingCountdownTime << std::endl;
-             
-                if (key == 'r' || key == 'R') {
-                    showLeaderboard = false;
-                    resetGame();
-                }
-            }
-            else if (key == 8 && !playerName.empty()) {
-                playerName.pop_back();
-            }
-            else if (isalpha(key)) {
-                playerName += key;
-            }
-            return;
-        }
-
-        //// ✅ Now handle R and H after name is entered
-        //if (showLeaderboard) {
-        //    switch (key) {
-        //    case 'R':
-        //    case 'r':
-        //        showLeaderboard = false;
-        //        resetGame();
-        //        break;
-        //    case 'H':
-        //    case 'h':
-        //        showLeaderboard = false;
-        //        resetGame();
-        //        isStart = false;
-        //        break;
-        //    }
-        //    return; // ✅ Prevent falling through to other logic
-        //}
-
-        switch (key)
-        {
-        case 'R':
-        case 'r':
-            resetGame();
-            break;
-        case 'H':
-        case 'h':
-            resetGame();
-            isStart = false;
-            break;
-        }
+        // Optional: handle retry or home keys here
     }
+
 
     if (isPaused == true) {
         switch (key)
@@ -1262,6 +1206,9 @@ void platformCollision()
                     score += 10;
                     landedOnPlatform[i] = true;
                 }
+
+                // -------------------------------------------------- ADDITIONAL JUMP STRENGTH --------------------------------------------------
+                if (i == 2) jumpStrength = 1.20f;
             }
 
             // HITTING FROM BELOW
@@ -1363,6 +1310,12 @@ void proceedToNextStage()
     for (int i = 0; i < platformCount; i++)
     {
         landedOnPlatform[i] = false;
+    }
+
+    if (stage == 2) {
+        isWallUpRightOpen = false;
+        remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh;
+        countdownActiveForPortal = false;
     }
 }
 
@@ -1508,12 +1461,12 @@ void keyCollision()
         userRight > keyLeft &&
         userBottom < keyTop &&
         userTop > keyBottom
-        ) {
+    ) {
 
         isWallUpRightOpen = true;
         printf("Wall Open: %s\n", isWallUpRightOpen ? "true" : "false");
         countdownActiveForPortal = true;
-        startTimeForPortalKeyShesh = glutGet(GLUT_ELAPSED_TIME); // mark exact collision time
+        startTimeForPortalKeyShesh = glutGet(GLUT_ELAPSED_TIME); // MARK EXACT COLLISION TIME
         remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh;
     }
 }
@@ -1535,27 +1488,52 @@ void wallLeftRightMainCollsion()
 // --------------------------- ACTIVITE #1 (END) | UPDATE ---------------------------
 
 // --------------------------- QUIZ #1 (START) | UPDATE ---------------------------
-void updateGameTimer(int currentTime) {
-    if (countdownActive) {
-        remainingTime = countdownTime - (currentTime - startTime) / 1000;
-        if (remainingTime <= 0) {
-            countdownActive = false;
-            // game over or next stage
-        }
-    }
-}
-
-void updatePortalKeyTimer(int currentTime) {
-    if (countdownActiveForPortal) {
-        remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh - (currentTime - startTimeForPortalKeyShesh) / 1000;
-        if (remainingTimeForPortalKeyShesh <= 0) {
-            countdownActiveForPortal = false;
-            // lock or remove portal key
-        }
-    }
-}
-
+//void updateGameTimer(int currentTime) {
+//    if (countdownActive) {
+//        remainingTime = countdownTime - (currentTime - startTime) / 1000;
+//        if (remainingTime <= 0) {
+//            countdownActive = false;
+//            // game over or next stage
+//        }
+//    }
+//}
+//
+//void updatePortalKeyTimer(int currentTime) {
+//    if (countdownActiveForPortal) {
+//        remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh - (currentTime - startTimeForPortalKeyShesh) / 1000;
+//        if (remainingTimeForPortalKeyShesh <= 0) {
+//            countdownActiveForPortal = false;
+//            // lock or remove portal key
+//        }
+//    }
+//}
 // --------------------------- QUIZ #1 (END) | UPDATE ---------------------------
+
+// ============================ ADDITIONAL (START) | UPDATE IMPLEMENTATION OBJECT THEORY MODIFICATION ============================
+void windUpdate()
+{
+    if (isWindActivate) {
+        userX += 0.05f * windDirection;
+    }
+}
+
+void updateWindVisibility()
+{
+    int currentTime = glutGet(GLUT_ELAPSED_TIME);
+    if (currentTime - lastToggleWindTime > toggleWindDelay)
+    {
+        isWindActivate = !isWindActivate;
+        lastToggleWindTime = currentTime;
+
+        // Randomize direction: either -1 or 1
+        windDirection = (rand() % 2 == 0) ? -1 : 1;
+
+        printf("Wind toggled: %s | Direction: %s\n",
+            isWindActivate ? "ON" : "OFF",
+            windDirection == 1 ? "RIGHT" : "LEFT");
+    }
+}
+// ============================ ADDITIONAL (END) | UPDATE IMPLEMENTATION OBJECT THEORY MODIFICATION ============================
 
 // UPDATE FUNCTION MAIN
 void update(int value)
@@ -1586,8 +1564,8 @@ void update(int value)
 
 
         // MOVE LEFT & RIGHT
-        if (moveLeft) userX -= 0.1f;
-        if (moveRight) userX += 0.1f;
+        if (moveLeft) userX -= 0.15f;
+        if (moveRight) userX += 0.15f;
 
         // TESTING
         /*printf("Velocity Y: ------- %f\n", velocityY);
@@ -1599,6 +1577,13 @@ void update(int value)
 
             proceedToNextStage();
         }
+
+        // -------- ADDITIONAL (START) | UPDATE OBJECT DECLARATION THEORY MODIFICATION --------
+        if (stage == 2) {
+            updateWindVisibility();
+            windUpdate();
+        }
+        // -------- ADDITIONAL (END) | UPDATE OBJECT DECLARATION THEORY MODIFICATION -------- 
 
         if (stage == 3) {
             glutPostRedisplay();
@@ -1626,40 +1611,15 @@ void update(int value)
         wallRightUpCollision();
         keyCollision();
 
-        //if (countdownActive) {
-        //    int currentTime = glutGet(GLUT_ELAPSED_TIME);
-        //    int elapsed = (currentTime - startTime) / 1000; // seconds
-        //    remainingTime = countdownTime - elapsed;
-        //    printf("Remaining Time : %d\n", remainingTime);
-        //    printf("Key Remaining Time : %d\n", remainingTimeForPortalKeyShesh);
-
-        //    if (remainingTime <= 0) {
-        //        remainingTime = 0;
-        //        countdownActive = false;
-        //        isGameOver = true; // stop game when timer ends
-        //    }
-
-        //    // SUSI
-        //    if (countdownActiveForPortal && isWallUpRightOpen) {
-        //        int currentTimePortalKey = glutGet(GLUT_ELAPSED_TIME);
-        //        int elapsedPortalKey = (currentTimePortalKey - startTimeForPortalKeyShesh) / 1000; // seconds
-        //        remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh - elapsedPortalKey;
-        //        printf("Key Remaining Time : %d\n", remainingTimeForPortalKeyShesh);
-
-        //        if (remainingTimeForPortalKeyShesh <= 0) {
-        //            remainingTimeForPortalKeyShesh = 0;
-        //            countdownActiveForPortal = false;
-        //            isWallUpRightOpen = true;
-        //        }
-        //    }
-        //}
-
-
-
         // TESTING
+        printf("Stage : %d\n", stage);
         printf("Remaining Time : %d\n", remainingTime);
         printf("Key Remaining Time : %d\n", remainingTimeForPortalKeyShesh);
-        printf("Highest Remaining Countdown Time : %d\n", highestRemainingCountdownTime);
+        // printf("Highest Remaining Countdown Time : %d\n", highestRemainingCountdownTime);
+        printf("Wall Open: %s\n", isWallUpRightOpen ? "true" : "false");
+        printf("Countdown Active For Portal : %s\n", countdownActiveForPortal ? "true" : "false");
+        printf("Typing Name : %s\n", typingName ? "true" : "false");
+        // printf("Stage #: %s\n");
 
         if (countdownActive) {
             int currentTime = glutGet(GLUT_ELAPSED_TIME);
@@ -1680,9 +1640,9 @@ void update(int value)
             remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh - elapsedPortalKey;
 
             if (remainingTimeForPortalKeyShesh <= 0) {
-                remainingTimeForPortalKeyShesh = 0;
+                remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh;
                 countdownActiveForPortal = false;
-                isWallUpRightOpen = true;
+                isWallUpRightOpen = false;
             }
         }
 
@@ -1753,9 +1713,9 @@ void display()
     glClear(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();
     glOrtho(0, 20, 0, 20, -1, 1);
-    wallLeftUp();
+    /*wallLeftUp();
     wallRightUp();
-    wallMiddleUp();
+    wallMiddleUp();*/
     drawBackground();
 
     objectProgram();
@@ -1821,7 +1781,6 @@ int main(int arg, char** argv)
     glutSpecialUpFunc(specialKeysUp);
     glutKeyboardFunc(keyboard); // Keyboard Keys Manipulation
     glutKeyboardUpFunc(keyboardUp);
-    glutMouseFunc(mouse);
     glClearColor(0.678f, 0.847, 0.902f, 1.0f); // background
 
     // ENEMY LOGIC
@@ -1862,8 +1821,3 @@ int main(int arg, char** argv)
 
     return 0;
 }
-
-/*
-    Image Directory
-    C:\Users\Andrew\source\repos\Midterm_Activity_Latest_Program\Midterm_Activity_Quiz_Exam\Images
-*/
