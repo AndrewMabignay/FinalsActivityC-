@@ -50,7 +50,7 @@ int platformDirection[platformCount] = { 1, -1, 1 };
 
 // LIVES, SCORING, STAGE & GAME OVER PROGRAM
 int lives = 3; // STARTING LIVES
-bool isGameOver = true;
+bool isGameOver = false;
 int lastHitTime = 0;
 const int hitDelay = 1000; // delay in ms (1 second)
 int score = 0;
@@ -64,6 +64,7 @@ bool isStart = false; // START GAME
 bool isRestart = false; // RESTART GAME
 bool isPaused = false; // PAUSE PROGRAM
 bool isPlayAgain = false; // HOME WHEN THE PROGRAM PAUSE OR GAME OVER
+bool isWin = false;
 
 // ACTIVITY # 1 | VARIABLES
 bool isWallUpRightOpen = false;
@@ -82,9 +83,9 @@ int changeGravity = 1;
 
 int changeMovementRightLeft = 0;
 
-int countdownTime = 60;   // starting seconds
+int countdownTime = 120;   // starting seconds
 int startTime = 0;        // when countdown started
-int remainingTime = 60;   // current countdown
+int remainingTime = 120;   // current countdown
 bool countdownActive = false;
 
 int countdownTimeForPortalKeyShesh = 15;
@@ -106,6 +107,17 @@ int highestRemainingCountdownTime = 0;
 // --------- FILE PATH --------- 
 const char* scoreFilePath = "Leaderboards/score.txt";
 // ============================ FINALS ACTIVITY (END) | VARIABLE ============================ 
+
+// ============================ THEORY MODIFICATION ADDITIONAL (START) | VARIABLE ============================
+// ---------------- #2 STAR / HEART ----------------
+//float itemOffsetX = 0.0f;
+//float itemDirection = 1.0f;
+//float itemSpeed = 0.03f;
+//float itemRange = 1.5f;
+//
+//float itemLeft, itemRight, itemBottom, itemTop; // bounding box
+//bool itemCollected = false;
+// ============================ THEORY MODIFICATION ADDITIONAL (END) | VARIABLE ============================
 
 // ============================ FINALS ACTIVITY (START) | SAVE & LOAD ALL SCORE FUNCTION ============================ 
 // --------- SAVE SCORE --------- 
@@ -165,11 +177,11 @@ std::vector<std::pair<std::string, int>> loadAllScore(const char* filename) {
 // ============================ FINALS ACTIVITY (START) | DISPLAY LEADERBOARDS & TYPING UI OBJECT FUNCTION ============================ 
 // -------- SHOW LEADERBOARD FUNCTION -------- 
 void showLeaderboardsObject() {
-    float showLeaderboardLeft = 6.5f, showLeaderboardRight = 14.5f, showLeaderboardBottom = 8.0f, showLeaderboardTop = 14.0f; // INTRODUCTION LOGO
+    float showLeaderboardLeft = 6.0f, showLeaderboardRight = 15.0f, showLeaderboardBottom = 7.0f, showLeaderboardTop = 14.0f; // INTRODUCTION LOGO
 
     // SHOW LEADERBOARD CONTAINER
     glBegin(GL_QUADS);
-        glColor3f(0.8f, 0.1f, 0.1f);
+        glColor4f(0.0f, 0.0f, 0.0f, 0.8f); // OVERLAY
         glVertex2f(showLeaderboardLeft, showLeaderboardBottom);
         glVertex2f(showLeaderboardRight, showLeaderboardBottom);
         glVertex2f(showLeaderboardRight, showLeaderboardTop);
@@ -180,18 +192,18 @@ void showLeaderboardsObject() {
 
     glColor3f(1.0f, 1.0f, 0.0f);
     float yPos = 12.5f;
-    glRasterPos2f(7.5f, yPos);
+    glRasterPos2f(7.0f, yPos);
     std::string header = "TOP 5 SCORES:";
-    for (char c : header) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
+    for (char c : header) glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c);
 
     int count = 0;
     for (auto& s : topScores) {
         if (count >= 5) break;
         yPos -= 0.90f;
-        glRasterPos2f(7.5f, yPos);
+        glRasterPos2f(7.0f, yPos);
         std::string line = std::to_string(count + 1) + ". " + s.first + " - " + std::to_string(s.second);
 
-        for (char c : line) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
+        for (char c : line) glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c);
         count++;
     }
 }
@@ -624,14 +636,14 @@ void renderCredits() {
     glColor3f(1.0f, 0.0f, 0.0f); // Red text
 
     // Combine all names into one line
-    std::string creditLine = "@Credits: Andrew Mabignay | Keith Aldrich Cruz | Edraine Cruz";
+    std::string creditLine = "@Credits: Andrew Mabignay | Keith Aldrich Cruz | Edraine Dela Paz";
 
     // Fixed Y position, moving X position
     float yPos = 2.0f; // adjust as needed
     glRasterPos2f(creditsX, yPos);
 
     for (char c : creditLine)
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, c);
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c);
 }
 
 
@@ -794,6 +806,21 @@ void wind()
     }
 }
 
+// ---------------- #2 STAR / HEART ----------------
+//void item() 
+//{
+//    if (itemCollected) return; // hide if collected
+//
+//    glBegin(GL_QUADS);
+//    glColor3f(1.0f, 1.0f, 0.0f);
+//    glVertex2f(itemLeft, itemBottom);
+//    glVertex2f(itemRight, itemBottom);
+//    glVertex2f(itemRight, itemTop);
+//    glVertex2f(itemLeft, itemTop);
+//    glEnd();
+//}
+
+
 // ============================ ADDITIONAL (END) | OBJECT THEORY MODIFICATION ============================ 
 
 void objectProgram()
@@ -813,7 +840,7 @@ void objectProgram()
     // TESTING
 
     // REVEAL USER, ENEMY, & GROUND (WHEN PROGRAM START)
-    if (isStart && (stage == 1 || stage == 2)) {
+    if (isStart && (stage == 1 || stage == 2 || stage == 3)) {
         // USER
         user();
 
@@ -849,6 +876,15 @@ void objectProgram()
         if (stage == 2) {
             wind();
         }
+
+        if (stage == 3) {
+            wind();
+        }
+
+        // --------------------- ADDITIONAL THEORY MODIFICATION (START) | OBJECT METHOD DECLARATION ---------------------
+        // ---------------- #2 STAR / HEART ----------------
+        // item();
+        // --------------------- ADDITIONAL THEORY MODIFICATION (END) | OBJECT METHOD DECLARATION ---------------------
 
         if (isPaused) {
             overlayPausePlay();
@@ -916,6 +952,9 @@ void resetGame()
 }
 
 // ============================ KEYBOARD FUNCTION ============================
+int jumpCount = 0;
+const int maxJumps = 2;
+
 void keyboard(unsigned char key, int x, int y)
 {
     if (isStart) {
@@ -936,6 +975,20 @@ void keyboard(unsigned char key, int x, int y)
                 isOnGround = false;
                 velocityY = jumpStrength;
             }
+            //if (jumpCount < maxJumps && (isOnGround || velocityY == 0.0f)) {
+            //    isOnGround = false;
+            //    velocityY = jumpStrength;
+            //    jumpCount++;   // increment jump count
+            //}
+
+            //if (isOnGround || velocityY == 0.0f) {
+            //    if (jumpCount < maxJumps) {
+            //        isOnGround = false;
+            //        velocityY = jumpStrength;
+            //        jumpCount++;   // increment jump count
+            //    }
+            //}
+
             break;
         case 27: // ESC (Pause & Play)
             isPaused = !isPaused ? true : false;
@@ -1155,6 +1208,11 @@ void applyGravity()
         velocityY = 0.0f;
         isOnGround = true;
     }
+
+    if (isOnGround) {
+        jumpCount = 0;   // reset when touching ground
+    }
+
 }
 
 // MOVING PLATFORM
@@ -1209,6 +1267,8 @@ void platformCollision()
 
                 // -------------------------------------------------- ADDITIONAL JUMP STRENGTH --------------------------------------------------
                 if (i == 2) jumpStrength = 1.20f;
+
+                // THEORY MODIFICATION 
             }
 
             // HITTING FROM BELOW
@@ -1241,6 +1301,11 @@ void enemyFunction()
     for (int i = 0; i < enemyCount; i++)
     {
         enemyY[i] -= 0.1f;  // bagsak
+
+        /*if (stage == 3) {
+            enemyY[i] -= 0.1f;
+        }*/
+
 
         // CHECKING COLLISION WITH PLATFORMS
         for (int j = 0; j < platformCount; j++)
@@ -1313,6 +1378,12 @@ void proceedToNextStage()
     }
 
     if (stage == 2) {
+        isWallUpRightOpen = false;
+        remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh;
+        countdownActiveForPortal = false;
+    }
+
+    if (stage == 3) {
         isWallUpRightOpen = false;
         remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh;
         countdownActiveForPortal = false;
@@ -1487,33 +1558,16 @@ void wallLeftRightMainCollsion()
 }
 // --------------------------- ACTIVITE #1 (END) | UPDATE ---------------------------
 
-// --------------------------- QUIZ #1 (START) | UPDATE ---------------------------
-//void updateGameTimer(int currentTime) {
-//    if (countdownActive) {
-//        remainingTime = countdownTime - (currentTime - startTime) / 1000;
-//        if (remainingTime <= 0) {
-//            countdownActive = false;
-//            // game over or next stage
-//        }
-//    }
-//}
-//
-//void updatePortalKeyTimer(int currentTime) {
-//    if (countdownActiveForPortal) {
-//        remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh - (currentTime - startTimeForPortalKeyShesh) / 1000;
-//        if (remainingTimeForPortalKeyShesh <= 0) {
-//            countdownActiveForPortal = false;
-//            // lock or remove portal key
-//        }
-//    }
-//}
-// --------------------------- QUIZ #1 (END) | UPDATE ---------------------------
-
 // ============================ ADDITIONAL (START) | UPDATE IMPLEMENTATION OBJECT THEORY MODIFICATION ============================
 void windUpdate()
 {
     if (isWindActivate) {
-        userX += 0.05f * windDirection;
+        if (stage == 3) {
+            userX += 0.10f * windDirection;
+        }
+        else {
+            userX += 0.05f * windDirection;
+        }
     }
 }
 
@@ -1533,6 +1587,49 @@ void updateWindVisibility()
             windDirection == 1 ? "RIGHT" : "LEFT");
     }
 }
+
+// ---------------- #2 STAR / HEART ---------------- 
+//void updateItem() {
+//    // oscillation movement
+//    itemOffsetX += itemDirection * itemSpeed;
+//    if (itemOffsetX > itemRange || itemOffsetX < -itemRange) {
+//        itemDirection *= -1.0f;
+//    }
+//
+//    // attach to middle platform (index 1)
+//    int platformIndex = 1;
+//    float platformCenterX = platformX[platformIndex];
+//    float platformTopY = platformY[platformIndex] + 0.5f;
+//
+//    itemLeft = platformCenterX - 0.5f + itemOffsetX;
+//    itemRight = platformCenterX + 0.5f + itemOffsetX;
+//    itemBottom = platformTopY;
+//    itemTop = platformTopY + 1.0f;
+//}
+//
+//void checkItemCollision() {
+//    if (itemCollected) return; // already collected
+//
+//    // player bounding box
+//    float playerLeft = userX + userSizeLeft;
+//    float playerRight = userX + userSizeRight;
+//    float playerBottom = userY + userSizeBottom;
+//    float playerTop = userY + userSizeTop;
+//
+//    // AABB collision (Axis-Aligned Bounding Box)
+//    bool overlap = !(playerRight < itemLeft ||
+//        playerLeft > itemRight ||
+//        playerTop < itemBottom ||
+//        playerBottom > itemTop);
+//
+//    if (overlap) {
+//        itemCollected = true;
+//        score += 100;   // add points
+//        lives += 1;     // or give extra life
+//        std::cout << "Item collected!" << std::endl;
+//    }
+//}
+
 // ============================ ADDITIONAL (END) | UPDATE IMPLEMENTATION OBJECT THEORY MODIFICATION ============================
 
 // UPDATE FUNCTION MAIN
@@ -1553,7 +1650,7 @@ void update(int value)
         }
 
         // GAME OVER
-        if (isGameOver) {
+        if (isGameOver || stage == 4) {
             isGameOverLogicFunction();
 
             glutPostRedisplay();
@@ -1578,18 +1675,26 @@ void update(int value)
             proceedToNextStage();
         }
 
+        
+
+
         // -------- ADDITIONAL (START) | UPDATE OBJECT DECLARATION THEORY MODIFICATION --------
         if (stage == 2) {
             updateWindVisibility();
             windUpdate();
         }
-        // -------- ADDITIONAL (END) | UPDATE OBJECT DECLARATION THEORY MODIFICATION -------- 
 
         if (stage == 3) {
-            glutPostRedisplay();
-            glutTimerFunc(16, update, 0);
-            return;
+            updateWindVisibility();
+            windUpdate();
         }
+
+        /*updateItem();
+        checkItemCollision();*/
+
+        // -------- ADDITIONAL (END) | UPDATE OBJECT DECLARATION THEORY MODIFICATION -------- 
+
+        
 
         // APPLY GRAVITY
         applyGravity();
@@ -1619,6 +1724,7 @@ void update(int value)
         printf("Wall Open: %s\n", isWallUpRightOpen ? "true" : "false");
         printf("Countdown Active For Portal : %s\n", countdownActiveForPortal ? "true" : "false");
         printf("Typing Name : %s\n", typingName ? "true" : "false");
+        printf("Panalo Ba : %s\n", isWin ? "true" : "false");
         // printf("Stage #: %s\n");
 
         if (countdownActive) {
@@ -1656,12 +1762,6 @@ void update(int value)
     glutPostRedisplay();
     glutTimerFunc(16, update, 0);
 }
-
-
-
-
-
-
 
 // ============================ ENEMY IMAGE ============================
 
@@ -1713,15 +1813,11 @@ void display()
     glClear(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();
     glOrtho(0, 20, 0, 20, -1, 1);
-    /*wallLeftUp();
-    wallRightUp();
-    wallMiddleUp();*/
     drawBackground();
 
     objectProgram();
 
     // WHEN THE GAME IS NOT YET STARTED - DISPLAY INTRO (START)
-    // isStart = false
     if (isStart) {
         // DISPLAY LIVES
         char livesText[20];
@@ -1734,13 +1830,6 @@ void display()
         glColor3f(1.0f, 1.0f, 1.0f); // BLACK
         snprintf(scoreText, sizeof(scoreText), "Score: %d", score);
         renderBitmapString(15.0f, 1.0f, scoreText);
-
-    }
-
-    // WHEN START THE GAME - REMOVE DISPLAY INTRO (START)
-    if (!isStart) {
-
-
     }
 
     glFlush();
@@ -1773,8 +1862,6 @@ int main(int arg, char** argv)
     // APPLICATION TITLE
     glutCreateWindow("Application namin ni papi mosh");
     glutDisplayFunc(display);
-    // Enable continuous rendering for animation
-    // glutIdleFunc(idle);  // ← THIS LINE
     glutTimerFunc(0, timer, 0);
     glutTimerFunc(16, update, 0);
     glutSpecialFunc(specialKeys);
