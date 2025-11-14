@@ -973,6 +973,7 @@ void resetGame()
     remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh;
     countdownActiveForPortal = false;
 
+    // THEORY MODIFICATION
     lifeCollected = false;
 }
 
