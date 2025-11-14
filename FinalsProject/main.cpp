@@ -820,7 +820,27 @@ void wind()
 //    glEnd();
 //}
 
+// ---------------- #3 LIFE RECOVERY ITEM ----------------
+bool lifeVisible = true;
+int lastToggleTime = 0;
+int toggleDelay = 3000;
 
+bool lifeCollected = false;
+float lifeItemLeft = 15.0f, lifeItemRight = 16.0f, lifeItemTop = 18.0f, lifeItemBottom = 17.5f;
+
+void lifeItem()
+{
+    if (lifeCollected) return;
+    if (!lifeVisible) return;
+
+    glBegin(GL_QUADS);
+        glColor3f(1.0f, 1.0f, 1.0f);
+        glVertex2f(lifeItemLeft, lifeItemBottom);
+        glVertex2f(lifeItemRight, lifeItemBottom);
+        glVertex2f(lifeItemRight, lifeItemTop);
+        glVertex2f(lifeItemLeft, lifeItemTop);
+    glEnd();
+}
 // ============================ ADDITIONAL (END) | OBJECT THEORY MODIFICATION ============================ 
 
 void objectProgram()
@@ -866,6 +886,7 @@ void objectProgram()
         wallMiddleUp();
         wallLeftUp();
 
+        
 
         /*if (countdownActiveForPortal == false) {
             key();
@@ -884,13 +905,15 @@ void objectProgram()
         // --------------------- ADDITIONAL THEORY MODIFICATION (START) | OBJECT METHOD DECLARATION ---------------------
         // ---------------- #2 STAR / HEART ----------------
         // item();
+        // 
+        lifeItem();
         // --------------------- ADDITIONAL THEORY MODIFICATION (END) | OBJECT METHOD DECLARATION ---------------------
 
         if (isPaused) {
             overlayPausePlay();
         }
 
-        if (isGameOver) gameOverOverlay();
+        if (isGameOver || stage == 4) gameOverOverlay();
     }
 }
 
@@ -922,6 +945,8 @@ void resetGame()
     score = 0;
     stage = 1;
 
+    isWallUpRightOpen = false;
+
     // RESET PLATFORMS (BACK TO THE ORIGINAL POSITIONS)
     float defaultPlatformX[platformCount] = { 6.0f, 11.0f, 16.0f };
     float defaultPlatformY[platformCount] = { 6.0f, 9.0f, 13.0f };
@@ -937,7 +962,7 @@ void resetGame()
     enemyLogic();
 
     // RESET COUNTDOWN (MAIN TIMER)
-    countdownTime = 30;                     // total seconds
+    countdownTime = 200;                     // total seconds
     startTime = glutGet(GLUT_ELAPSED_TIME); // mark new start
     remainingTime = countdownTime;
     countdownActive = true;
@@ -946,9 +971,9 @@ void resetGame()
     countdownTimeForPortalKeyShesh = 15;
     startTimeForPortalKeyShesh = glutGet(GLUT_ELAPSED_TIME);
     remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh;
-    countdownActiveForPortal = true;
+    countdownActiveForPortal = false;
 
-    isWallUpRightOpen = false;
+    lifeCollected = false;
 }
 
 // ============================ KEYBOARD FUNCTION ============================
@@ -1630,6 +1655,40 @@ void updateWindVisibility()
 //    }
 //}
 
+void lifeItemCollision()
+{
+    if (lifeCollected) return;   // already collected
+    if (!lifeVisible) return;    // invisible, skip collision
+
+    // USER BOUNDS
+    float userLeft = userX + 2.0f;
+    float userRight = userX + 3.0f;
+    float userBottom = userY + 2.0f;
+    float userTop = userY + 3.0f;
+
+    if (
+        userLeft < lifeItemRight &&
+        userRight > lifeItemLeft &&
+        userBottom < lifeItemTop &&
+        userTop > lifeItemBottom
+    ) {
+        
+        lifeCollected = true;
+
+        if (lives < 3) lives++;
+    }
+}
+
+void updateLifeItemVisibility()
+{
+    int currentTime = glutGet(GLUT_ELAPSED_TIME); // current time in ms
+    if (currentTime - lastToggleTime > toggleDelay) {
+        lifeVisible = !lifeVisible;   // flip visibility
+        lastToggleTime = currentTime; // reset timer
+    }
+}
+
+
 // ============================ ADDITIONAL (END) | UPDATE IMPLEMENTATION OBJECT THEORY MODIFICATION ============================
 
 // UPDATE FUNCTION MAIN
@@ -1675,9 +1734,6 @@ void update(int value)
             proceedToNextStage();
         }
 
-        
-
-
         // -------- ADDITIONAL (START) | UPDATE OBJECT DECLARATION THEORY MODIFICATION --------
         if (stage == 2) {
             updateWindVisibility();
@@ -1688,6 +1744,12 @@ void update(int value)
             updateWindVisibility();
             windUpdate();
         }
+
+        if (!lifeCollected || lifeVisible) {
+            lifeItemCollision();
+            updateLifeItemVisibility();
+        }
+        
 
         /*updateItem();
         checkItemCollision();*/
@@ -1725,6 +1787,7 @@ void update(int value)
         printf("Countdown Active For Portal : %s\n", countdownActiveForPortal ? "true" : "false");
         printf("Typing Name : %s\n", typingName ? "true" : "false");
         printf("Panalo Ba : %s\n", isWin ? "true" : "false");
+        printf("Life Collected : %s\n", lifeCollected ? "true" : "false");
         // printf("Stage #: %s\n");
 
         if (countdownActive) {
