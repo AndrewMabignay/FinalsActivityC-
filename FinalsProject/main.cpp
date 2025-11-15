@@ -85,10 +85,10 @@ int changeMovementRightLeft = 0;
 
 int countdownTime = 120;   // starting seconds
 int startTime = 0;        // when countdown started
-int remainingTime = 120;   // current countdown
+int remainingTime = countdownTime;   // current countdown
 bool countdownActive = false;
 
-int countdownTimeForPortalKeyShesh = 15;
+int countdownTimeForPortalKeyShesh = 30;
 int startTimeForPortalKeyShesh = 0;
 int remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh;
 bool countdownActiveForPortal = false;
@@ -828,10 +828,14 @@ int toggleDelay = 3000;
 bool lifeCollected = false;
 float lifeItemLeft = 15.0f, lifeItemRight = 16.0f, lifeItemTop = 18.0f, lifeItemBottom = 17.5f;
 
+GLuint lifeTexture;
 void lifeItem()
 {
     if (lifeCollected) return;
     if (!lifeVisible) return;
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, keyTexture);
 
     glBegin(GL_QUADS);
         glColor3f(1.0f, 1.0f, 1.0f);
@@ -906,14 +910,16 @@ void objectProgram()
         // ---------------- #2 STAR / HEART ----------------
         // item();
         // 
-        lifeItem();
+        // lifeItem();
         // --------------------- ADDITIONAL THEORY MODIFICATION (END) | OBJECT METHOD DECLARATION ---------------------
 
         if (isPaused) {
             overlayPausePlay();
         }
 
-        if (isGameOver || stage == 4) gameOverOverlay();
+        if (isGameOver) {
+            gameOverOverlay();
+        }
     }
 }
 
@@ -1328,9 +1334,9 @@ void enemyFunction()
     {
         enemyY[i] -= 0.1f;  // bagsak
 
-        /*if (stage == 3) {
-            enemyY[i] -= 0.1f;
-        }*/
+        if (stage == 3) {
+            enemyY[i] -= 0.11f;
+        }
 
 
         // CHECKING COLLISION WITH PLATFORMS
@@ -1413,6 +1419,10 @@ void proceedToNextStage()
         isWallUpRightOpen = false;
         remainingTimeForPortalKeyShesh = countdownTimeForPortalKeyShesh;
         countdownActiveForPortal = false;
+    }
+
+    if (stage == 4) {
+        isGameOver = true;
     }
 }
 
@@ -1656,38 +1666,38 @@ void updateWindVisibility()
 //    }
 //}
 
-void lifeItemCollision()
-{
-    if (lifeCollected) return;   // already collected
-    if (!lifeVisible) return;    // invisible, skip collision
-
-    // USER BOUNDS
-    float userLeft = userX + 2.0f;
-    float userRight = userX + 3.0f;
-    float userBottom = userY + 2.0f;
-    float userTop = userY + 3.0f;
-
-    if (
-        userLeft < lifeItemRight &&
-        userRight > lifeItemLeft &&
-        userBottom < lifeItemTop &&
-        userTop > lifeItemBottom
-    ) {
-        
-        lifeCollected = true;
-
-        if (lives < 3) lives++;
-    }
-}
-
-void updateLifeItemVisibility()
-{
-    int currentTime = glutGet(GLUT_ELAPSED_TIME); // current time in ms
-    if (currentTime - lastToggleTime > toggleDelay) {
-        lifeVisible = !lifeVisible;   // flip visibility
-        lastToggleTime = currentTime; // reset timer
-    }
-}
+//void lifeItemCollision()
+//{
+//    if (lifeCollected) return;   // already collected
+//    if (!lifeVisible) return;    // invisible, skip collision
+//
+//    // USER BOUNDS
+//    float userLeft = userX + 2.0f;
+//    float userRight = userX + 3.0f;
+//    float userBottom = userY + 2.0f;
+//    float userTop = userY + 3.0f;
+//
+//    if (
+//        userLeft < lifeItemRight &&
+//        userRight > lifeItemLeft &&
+//        userBottom < lifeItemTop &&
+//        userTop > lifeItemBottom
+//    ) {
+//        
+//        lifeCollected = true;
+//
+//        if (lives < 3) lives++;
+//    }
+//}
+//
+//void updateLifeItemVisibility()
+//{
+//    int currentTime = glutGet(GLUT_ELAPSED_TIME); // current time in ms
+//    if (currentTime - lastToggleTime > toggleDelay) {
+//        lifeVisible = !lifeVisible;   // flip visibility
+//        lastToggleTime = currentTime; // reset timer
+//    }
+//}
 
 
 // ============================ ADDITIONAL (END) | UPDATE IMPLEMENTATION OBJECT THEORY MODIFICATION ============================
@@ -1710,7 +1720,7 @@ void update(int value)
         }
 
         // GAME OVER
-        if (isGameOver || stage == 4) {
+        if (isGameOver) {
             isGameOverLogicFunction();
 
             glutPostRedisplay();
@@ -1747,8 +1757,8 @@ void update(int value)
         }
 
         if (!lifeCollected || lifeVisible) {
-            lifeItemCollision();
-            updateLifeItemVisibility();
+            /*lifeItemCollision();
+            updateLifeItemVisibility();*/
         }
         
 
